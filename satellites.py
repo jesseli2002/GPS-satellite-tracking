@@ -42,6 +42,9 @@ class Satellite:
         """
         Calculates current position based on time.
         t: datetime - indicates time. Will calculate position based on epoch time.
+
+        Returns:
+        3-element list containing x, y, z coordinates.
         """
         # https://space.stackexchange.com/questions/8911/determining-orbital-position-at-a-future-point-in-time
 
@@ -55,6 +58,12 @@ class Satellite:
 
         return [x, y, z]
 
+    def get_np_pos(self, t):
+        """
+        Wrapper around get_position, that returns numpy array instead.
+        """
+        return np.array(self.get_position(t))
+
 
 class Observer:
     """
@@ -67,6 +76,14 @@ class Observer:
         self.epoch = epoch
 
     def get_position(self, t):
+        """
+        Calculates current position based on time.
+        t: datetime - indicates time. Will calculate position based on epoch time.
+
+        Returns:
+        3-element list containing x, y, z coordinates.
+        """
+
         t = (t - self.epoch).total_seconds()
         theta = self.theta0 + const.W_EARTH * t
         x = const.R_EARTH * np.cos(self.lat) * np.sin(theta)
@@ -74,11 +91,11 @@ class Observer:
         z = const.R_EARTH * np.sin(self.lat)
         return [x, y, z]
 
-    def isVisible(self, lookPos, t):
+    def can_see(self, lookPos, t):
         """
         Checks to see if a particular point is visible. lookPos should be a numpy 3-dimensional vector.
         """
         # Planned algorithm: Check the angle between the vector pointing straight up (i.e. away from Earth), and vector to lookPos. If this is <= pi/2, then we're good.
         # Proper formula is cos(x) = a [dot] b  / (|a| |b|), but if it's above the horizon, then cos(x) * (|a| |b|) is always positive ==> all we need to do is check a [dot] b is positive.
         myPos = np.array(self.get_position(t))
-        return myPos.dot(lookPos) >= 0
+        return myPos.dot(lookPos - myPos) >= 0
