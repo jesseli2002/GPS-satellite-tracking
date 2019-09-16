@@ -12,10 +12,10 @@ def _grouper(iterable, n, fillvalue=None):
 
 
 def getOrbits():
-    dataFile = "gpsOrbitalElements.txt"
-    gpsList = []
-    with open(dataFile) as gpsFile:
-        for name, line1, line2 in _grouper(gpsFile.readlines(), 3):
+    data_file = "gpsOrbitalElements.txt"
+    gps_list = []
+    with open(data_file) as gps_file:
+        for name, line1, line2 in _grouper(gps_file.readlines(), 3):
             year = '20' + line1[18:20]
             day = float(line1[20:32])
             day, dayfrac = divmod(day, 1.0)
@@ -42,7 +42,7 @@ def getOrbits():
             # mean motion, to rad / s
             nu = float(line2[52:63]) * 7.27220521664304E-5
 
-            gpsList.append({
+            gps_list.append({
                 "loan": float(line2[17:25]) * pi / 180,
                 "incl": float(line2[8:16]) * pi / 180,
                 # argument of periapsis + true anomaly (is currently mean anomaly but for low eccentricities it shouldn't matter too much)
@@ -50,4 +50,4 @@ def getOrbits():
                 "a": (const.MU_EARTH / nu ** 2) ** (1 / 3),
                 "epoch": epoch
             })
-    return gpsList
+    return gps_list

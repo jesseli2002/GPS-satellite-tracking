@@ -4,7 +4,7 @@ import datetime as dt
 import numpy as np
 
 
-def getRot(theta): return np.array(
+def get_rot(theta): return np.array(
     [[np.cos(theta), -np.sin(theta)],
      [np.sin(theta), np.cos(theta)]])
 
@@ -27,7 +27,7 @@ class Satellite:
         self.loan = kwargs["loan"]
         self.incl = kwargs["incl"]
 
-    def getOrbitPlanePos(self, t):
+    def get_orb_plane_pos(self, t):
         """
         Calculates position in orbital plane at time t.
         x in direction of ascending node, y perpendicular to x. Data can then be projected onto equatorial plane and apply rotation matrix to get true x, y, and z
@@ -38,18 +38,18 @@ class Satellite:
 
         return opx, opy
 
-    def getPosition(self, t):
+    def get_position(self, t):
         """
         Calculates current position based on time.
         t: datetime - indicates time. Will calculate position based on epoch time.
         """
         # https://space.stackexchange.com/questions/8911/determining-orbital-position-at-a-future-point-in-time
 
-        opx, opy = self.getOrbitPlanePos((t-self.epoch).total_seconds())
+        opx, opy = self.get_orb_plane_pos((t-self.epoch).total_seconds())
 
         # eqx for equatorial x, x being a vector
         eqx = np.array([opx, opy*np.cos(self.incl)])
-        x, y = tuple(getRot(-self.loan) @ eqx)
+        x, y = tuple(get_rot(-self.loan) @ eqx)
 
         z = opy * np.sin(self.incl)
 
@@ -65,7 +65,7 @@ class Observer:
         self.lat = lat
         self.theta0 = theta
 
-    def getPosition(self, t):
+    def get_position(self, t):
         theta = self.theta0 + const.W_EARTH * t
         x = const.R_EARTH * np.cos(self.lat) * np.sin(theta)
         y = const.R_EARTH * np.cos(self.lat) * np.cos(theta)

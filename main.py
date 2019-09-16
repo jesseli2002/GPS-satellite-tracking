@@ -45,19 +45,19 @@ def plotEarth(ax, rotAngle=0):
     plt.pause(0.0001)
 
 
-gpsSats = [sat.Satellite(**orbit) for orbit in rd.getOrbits()]
-gpsGraphs = [list() for n in range(len(gpsSats))]
+gps_sats = [sat.Satellite(**orbit) for orbit in rd.getOrbits()]
+gps_graphs = [list() for n in range(len(gps_sats))]
 rocket = sat.Observer(const.LAT_UBC, 0)
 
 now = dt.datetime.now()
 for i in range(25):
-    for j, graph in enumerate(gpsGraphs):
-        graph.append(gpsSats[j].getPosition(
+    for j, graph in enumerate(gps_graphs):
+        graph.append(gps_sats[j].get_position(
             now + dt.timedelta(0, i * 60 * 30)))
 
 plotEarth(ax)
 
-for a in gpsGraphs:
+for a in gps_graphs:
     a = np.array(a)
     ax.scatter(a[0, 0], a[0, 1], a[0, 2], c='r')
     ax.plot(a[:, 0], a[:, 1], a[:, 2], c='g')
@@ -67,7 +67,6 @@ ax.set_xlabel("X")
 ax.set_ylabel("Y")
 ax.set_zlabel("Z")
 plt.show()
-
 
 print("Done.")
 input()
