@@ -61,16 +61,24 @@ class Observer:
     Class for observer on earth surface.
     """
 
-    def __init__(self, lat, theta):
+    def __init__(self, lat, theta, epoch):
         self.lat = lat
         self.theta0 = theta
+        self.epoch = epoch
 
     def get_position(self, t):
+        t = (t - self.epoch).total_seconds()
         theta = self.theta0 + const.W_EARTH * t
         x = const.R_EARTH * np.cos(self.lat) * np.sin(theta)
         y = const.R_EARTH * np.cos(self.lat) * np.cos(theta)
         z = const.R_EARTH * np.sin(self.lat)
         return [x, y, z]
 
-    def isVisible(self, lookPos):
-        raise NotImplementedError()
+    def isVisible(self, lookPos, t):
+        """
+        Checks to see if a particular point is visible. lookPos should be a numpy 3-dimensional vector.
+        """
+        # Planned algorithm: Check the angle between the vector pointing straight up (i.e. away from Earth), and vector to lookPos. If this is <= pi/2, then we're good.
+        # Proper formula is cos(x) = a [dot] b  / (|a| |b|), but if it's above the horizon, then cos(x) * (|a| |b|) is always positive ==> all we need to do is check a [dot] b is positive.
+        myPos = np.array(self.get_position(t))
+        return myPos.dot(lookPos) >= 0
