@@ -12,7 +12,7 @@ def _grouper(iterable, n, fillvalue=None):
 
 
 def getOrbits():
-    data_file = "gpsOrbitalElements.txt"
+    data_file = "gps-ops.txt"
     gps_list = []
     with open(data_file) as gps_file:
         for name, line1, line2 in _grouper(gps_file.readlines(), 3):
