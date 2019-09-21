@@ -66,6 +66,14 @@ for a in gps_graphs:
 ax.set_xlabel("X")
 ax.set_ylabel("Y")
 ax.set_zlabel("Z")
+
+ax.grid(False)
+ax.w_xaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+ax.w_yaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+ax.w_zaxis.set_pane_color((0.0, 0.0, 0.0, 0.0))
+ax.set_facecolor('black')
+fig.patch.set_facecolor('black')
+plt.style.use("dark_background")
 plt.show()
 
 print("Done.")
