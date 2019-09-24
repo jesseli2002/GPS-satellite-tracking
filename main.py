@@ -20,8 +20,7 @@ pi = np.pi
 gps_sats = [sat.Satellite(**orbit) for orbit in rd.getOrbits()]
 
 now = dt.datetime.now()
-rocket = sat.Observer(const.LAT_UBC, (15 * 3600 + 49 *
-                                       60 + 14.89) / 86400 * 2 * pi, dt.datetime(2019, 9, 22))
+rocket = sat.Observer(*const.UBC_OBSERVER_DATA_ELEMENTS)
 # sidereal time is 15:49:14.89
 
 agg = []
