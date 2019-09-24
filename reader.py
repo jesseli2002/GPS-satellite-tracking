@@ -15,7 +15,7 @@ def getOrbits():
     data_file = "gps-ops.txt"
     gps_list = []
     with open(data_file) as gps_file:
-        for name, line1, line2 in _grouper(gps_file.readlines(), 3):
+        for _, line1, line2 in _grouper(gps_file.readlines(), 3):
             year = '20' + line1[18:20]
             day = float(line1[20:32])
             day, dayfrac = divmod(day, 1.0)

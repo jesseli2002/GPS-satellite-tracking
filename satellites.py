@@ -96,6 +96,8 @@ class Observer:
         Checks to see if a particular point is visible. lookPos should be a numpy 3-dimensional vector.
         """
         # Planned algorithm: Check the angle between the vector pointing straight up (i.e. away from Earth), and vector to lookPos. If this is <= pi/2, then we're good.
-        # Proper formula is cos(x) = a [dot] b  / (|a| |b|), but if it's above the horizon, then cos(x) * (|a| |b|) is always positive ==> all we need to do is check a [dot] b is positive.
-        myPos = np.array(self.get_position(t))
-        return myPos.dot(lookPos - myPos) >= 0
+        # Formula is cos(x) = a [dot] b  / (|a| |b|). Something about acos being ill-conditioned near pi/2, so instead of calculating angle, we use cos(angle) < a [dot] b  / (|a| |b|)
+        a = np.array(self.get_position(t))  # observer position
+        b = lookPos - a
+        minMask = 10 * np.pi/180
+        return a.dot(b) / (np.linalg.norm(a) * np.linalg.norm(b)) >= np.cos(np.pi / 2 - minMask)
