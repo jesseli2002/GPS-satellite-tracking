@@ -2,6 +2,7 @@ import constants as const
 
 import datetime as dt
 import numpy as np
+import itertools as it
 
 
 def get_rot(theta): return np.array(
@@ -101,3 +102,14 @@ class Observer:
         b = lookPos - a
         minMask = 10 * np.pi/180
         return a.dot(b) / (np.linalg.norm(a) * np.linalg.norm(b)) >= np.cos(np.pi / 2 - minMask)
+
+    def max_circle_covered(self, poses, t, r):
+        """
+        poses: list of positions
+        t: current time
+        r: radius of covering circle
+        """
+        my_pos = self.get_position(t)
+        rel_pos = [a - my_pos for a in poses]
+        for p1, p2 in it.permutations(rel_pos):
+            pass
