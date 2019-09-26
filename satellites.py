@@ -103,13 +103,46 @@ class Observer:
         minMask = 10 * np.pi/180
         return a.dot(b) / (np.linalg.norm(a) * np.linalg.norm(b)) >= np.cos(np.pi / 2 - minMask)
 
-    def max_circle_covered(self, poses, t, r):
+
+    def max_circle_covered(self, poses, t, l):
         """
         poses: list of positions
         t: current time
-        r: radius of covering circle
+        l: length of RF window above receiver, in metres
         """
+        def plane_side_check(X, rel_pos, P, Q):
+            count = 0
+            for Y in rel_pos:
+                if Y in (P, Q):
+                    continue
+                if X.dot(Y - X) >= 0:
+                    count += 1
+            return count + 2
+
+
+        scale = np.sqrt(l ** 2 + (const.DIAM_ROCKET / 2) ** 2 )
+        d = l / scale
+        maxdiff = const.DIAM_ROCKET / scale
+
         my_pos = self.get_position(t)
-        rel_pos = [a - my_pos for a in poses]
-        for p1, p2 in it.permutations(rel_pos):
-            pass
+        rel_pos = [(a - my_pos)/np.linalg.norm(a - my_pos) for a in poses]
+        for P, Q in it.combinations(rel_pos):
+            n = Q - P
+            n_norm = np.linalg.norm(n)
+            if n_norm < maxdiff:
+                break
+            n /= n_norm
+            M = (P + Q) / 2
+            M_norm = np.linalg.norm(M)
+            Mja = np.cross(n, M)
+            Mjb = -Mja
+
+            theta = np.arccos(d / M_norm)
+            Xa = M * np.cos(theta) + Mja * np.sin(theta)
+            Xb = M * np.cos(theta) - Mja * np.sin(theta)
+
+            Xa *= (d / np.linalg.norm(Xa))
+            Xb *= (d / np.linalg.norm(Xb))
+
+
+
