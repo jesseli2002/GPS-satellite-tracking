@@ -103,39 +103,42 @@ class Observer:
         minMask = 10 * np.pi/180
         return a.dot(b) / (np.linalg.norm(a) * np.linalg.norm(b)) >= np.cos(np.pi / 2 - minMask)
 
-
-    def max_circle_covered(self, poses, t, l):
+    def num_visible_uncovered(self, poses, t, l):
         """
         poses: list of positions
         t: current time
         l: length of RF window above receiver, in metres
         """
-        def plane_side_check(X, rel_pos, P, Q):
+        # refer to https://stackoverflow.com/questions/3229459/algorithm-to-cover-maximal-number-of-points-with-one-circle-of-given-radius
+        visible = list(filter(lambda pos: self.can_see(pos, t), poses))
+
+        scale = np.sqrt(l ** 2 + (const.DIAM_ROCKET / 2) ** 2)
+        d = l / scale
+        maxdiff = const.DIAM_ROCKET / scale
+
+        my_pos = self.get_position(t)
+        rel_pos = [(a - my_pos) / np.linalg.norm(a - my_pos) for a in visible]
+
+        def plane_side_check(X):
             count = 0
             for Y in rel_pos:
-                if Y in (P, Q):
+                if (Y == P).all() or (Y == Q).all(): # b/c np.__eq__ returns bool array
                     continue
                 if X.dot(Y - X) >= 0:
                     count += 1
             return count + 2
 
+        max_coverable = 1
 
-        scale = np.sqrt(l ** 2 + (const.DIAM_ROCKET / 2) ** 2 )
-        d = l / scale
-        maxdiff = const.DIAM_ROCKET / scale
-
-        my_pos = self.get_position(t)
-        rel_pos = [(a - my_pos)/np.linalg.norm(a - my_pos) for a in poses]
-        for P, Q in it.combinations(rel_pos):
+        for P, Q in it.combinations(rel_pos, 2):
             n = Q - P
             n_norm = np.linalg.norm(n)
-            if n_norm < maxdiff:
+            if n_norm >= maxdiff:
                 break
             n /= n_norm
             M = (P + Q) / 2
             M_norm = np.linalg.norm(M)
             Mja = np.cross(n, M)
-            Mjb = -Mja
 
             theta = np.arccos(d / M_norm)
             Xa = M * np.cos(theta) + Mja * np.sin(theta)
@@ -144,5 +147,7 @@ class Observer:
             Xa *= (d / np.linalg.norm(Xa))
             Xb *= (d / np.linalg.norm(Xb))
 
+            max_coverable = max(
+                max_coverable, plane_side_check(Xa), plane_side_check(Xb))
 
-
+        return len(visible) - max_coverable
