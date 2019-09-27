@@ -84,7 +84,7 @@ class Observer:
         Returns:
         3-element list containing x, y, z coordinates.
         """
-
+        
         t = (t - self.epoch).total_seconds()
         theta = self.theta0 + const.W_EARTH * t
         x = const.R_EARTH * np.cos(self.lat) * np.sin(theta)
