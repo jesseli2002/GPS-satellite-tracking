@@ -2,6 +2,7 @@ import constants as const
 from itertools import zip_longest
 from numpy import pi
 import datetime as dt
+import satellites as sat
 
 
 def _grouper(iterable, n, fillvalue=None):
@@ -11,11 +12,11 @@ def _grouper(iterable, n, fillvalue=None):
     return zip_longest(*args, fillvalue=fillvalue)
 
 
-def getOrbits():
+def getSatellites():
     data_file = "gps-ops.txt"
     gps_list = []
     with open(data_file) as gps_file:
-        for _, line1, line2 in _grouper(gps_file.readlines(), 3):
+        for name, line1, line2 in _grouper(gps_file.readlines(), 3):
             year = '20' + line1[18:20]
             day = float(line1[20:32])
             day, dayfrac = divmod(day, 1.0)
@@ -42,12 +43,14 @@ def getOrbits():
             # mean motion, to rad / s
             nu = float(line2[52:63]) * 7.27220521664304E-5
 
-            gps_list.append({
-                "loan": float(line2[17:25]) * pi / 180,
-                "incl": float(line2[8:16]) * pi / 180,
+            gps_list.append(
+                sat.Satellite(
+                loan=float(line2[17:25]) * pi / 180,
+                incl=float(line2[8:16]) * pi / 180,
                 # argument of periapsis + true anomaly (is currently mean anomaly but for low eccentricities it shouldn't matter too much)
-                "arglat": (float(line2[34:42]) + float(line2[43:51]))*pi / 180,
-                "a": (const.MU_EARTH / nu ** 2) ** (1 / 3),
-                "epoch": epoch
-            })
+                arglat=(float(line2[34:42]) + float(line2[43:51]))*pi / 180,
+                a=(const.MU_EARTH / nu ** 2) ** (1 / 3),
+                epoch=epoch,
+                name=name
+            ))
     return gps_list

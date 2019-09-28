@@ -17,6 +17,9 @@ class Satellite:
     th0 - theta, argument of latitude (i.e. angle from ascending node)
     loan - longitude of ascending node
     incl - inclination
+    a - semi-major axis
+    epoch - time of epoch
+    arglat - argument of latitude
     """
 
     def __init__(self, **kwargs):
@@ -27,6 +30,7 @@ class Satellite:
         self.omega = (const.MU_EARTH / self.r ** 3) ** 0.5
         self.loan = kwargs["loan"]
         self.incl = kwargs["incl"]
+        self.name = kwargs.get("name")
 
     def get_orb_plane_pos(self, t):
         """
@@ -91,6 +95,12 @@ class Observer:
         y = const.R_EARTH * np.cos(self.lat) * np.cos(theta)
         z = const.R_EARTH * np.sin(self.lat)
         return [x, y, z]
+
+    def get_np_pos(self, t):
+        """
+        Wrapper around get_position, that returns numpy array instead.
+        """
+        return np.array(self.get_position(t))
 
     def can_see(self, lookPos, t):
         """
