@@ -84,7 +84,7 @@ class Observer:
         Returns:
         3-element list containing x, y, z coordinates.
         """
-        
+
         t = (t - self.epoch).total_seconds()
         theta = self.theta0 + const.W_EARTH * t
         x = const.R_EARTH * np.cos(self.lat) * np.sin(theta)
@@ -122,7 +122,7 @@ class Observer:
         def plane_side_check(X):
             count = 0
             for Y in rel_pos:
-                if (Y == P).all() or (Y == Q).all(): # b/c np.__eq__ returns bool array
+                if (Y == P).all() or (Y == Q).all():  # b/c np.__eq__ returns bool array
                     continue
                 if X.dot(Y - X) >= 0:
                     count += 1
@@ -131,10 +131,11 @@ class Observer:
         max_coverable = 1
 
         for P, Q in it.combinations(rel_pos, 2):
+
             n = Q - P
             n_norm = np.linalg.norm(n)
             if n_norm >= maxdiff:
-                break
+                continue
             n /= n_norm
             M = (P + Q) / 2
             M_norm = np.linalg.norm(M)
@@ -149,5 +150,7 @@ class Observer:
 
             max_coverable = max(
                 max_coverable, plane_side_check(Xa), plane_side_check(Xb))
+            if (max_coverable) == len(visible):
+                break
 
         return len(visible) - max_coverable
