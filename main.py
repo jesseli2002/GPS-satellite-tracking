@@ -5,10 +5,11 @@ import reader as rd
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import matplotlib.pyplot as plt
-import csv
 
+import csv
 import datetime as dt
 import time
+import os
 
 pi = np.pi
 
@@ -16,30 +17,42 @@ gps_sats = rd.getSatellites()
 
 now = dt.datetime.now()
 rocket = sat.Observer(*const.SPACEPORT_OBSERVER_DATA_ELEMENTS)
-# sidereal time is 15:49:14.89
+
 l = 0.4
+log_fold = "logs"
+os.makedirs(log_fold, exist_ok=True)
 
-agg = []
+print("Starting...")
+with open(os.path.join(log_fold, "datalog_" + now.strftime("%Y%m%d_%H%M%S") + ".csv"), mode='w', newline='') as log_file:
 
-for i in range(6*24*30):  # once every 10 minutes for 24 hrs for 30 days
-    t = dt.datetime(2019, 9, 23, 4) + dt.timedelta(0, i * 600)
-    poses = [sat.get_np_pos(t) for sat in gps_sats]
-    num_visible = [rocket.can_see(pos, t)
-                   for pos in poses].count(True)
+    log_writer = csv.writer(log_file)
+    log_writer.writerow(("Time", "Visible", "Uncovered", "Warnings"))
+    times_uncovered = 0
+    times_total = 6 * 24 * 30  # once every 10 minutes for 24 hrs for 30 days
+    time_start = dt.datetime(2019, 9, 23, 4)
+    last_day = None
 
-    num_uncovered = rocket.num_visible_uncovered(poses, t, l)
+    for i in range(times_total):
+        t = time_start + dt.timedelta(0, i * 600)
+        if t.day != last_day:
+            last_day = t.day
+            print(f"Now simulating {t}")
 
-    if 4 <= num_uncovered <= 5:
-        print("Warning: Potentially low coverage.")
-        print(str(t) + ": " + str(num_visible) +
-              " satellites visible. ", end='')
-        print("At least " + str(num_uncovered) + " satellites uncovered.")
-    elif num_uncovered < 4:
-        print("FATAL WARNING: Loss of signal!")
-        print(str(t) + ": " + str(num_visible) +
-              " satellites visible. ", end='')
-        print("At least " + str(num_uncovered) + " satellites uncovered.")
-        input("Press enter to acknowledge)")
+        poses = [sat.get_np_pos(t) for sat in gps_sats]
+        num_visible = [rocket.can_see(pos, t)
+                       for pos in poses].count(True)
 
-# print("Done.")
-input("Done. Press enter to finish.")
+        num_uncovered = rocket.num_visible_uncovered(poses, t, l)
+
+        if num_uncovered > 5:
+            warning = ""
+        elif num_uncovered > 3:
+            warning = "Low coverage"
+        else:
+            warning = "No coverage"
+            times_uncovered += 1
+
+        log_writer.writerow((str(t), num_visible, num_uncovered, warning))
+
+print(f"{times_uncovered / times_total * 100:.2}% downtime.")
+input("\nPress enter to finish.")
