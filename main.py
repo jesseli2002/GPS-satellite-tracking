@@ -38,11 +38,8 @@ with open(os.path.join(log_fold, "datalog_" + now.strftime("%Y%m%d_%H%M%S") + ".
             last_day = t.day
             print(f"Now simulating {t}")
 
-        poses = [sat.get_np_pos(t) for sat in gps_sats]
-        num_visible = [rocket.can_see(pos, t)
-                       for pos in poses].count(True)
-
-        num_uncovered = rocket.num_visible_uncovered(poses, t, l)
+        num_vis, num_uncovered = rocket.numVisibleUncovered(
+            gps_sats, t, l, True)
 
         if num_uncovered > 5:
             warning = ""
@@ -52,7 +49,7 @@ with open(os.path.join(log_fold, "datalog_" + now.strftime("%Y%m%d_%H%M%S") + ".
             warning = "No coverage"
             times_uncovered += 1
 
-        log_writer.writerow((str(t), num_visible, num_uncovered, warning))
+        log_writer.writerow((str(t), num_vis, num_uncovered, warning))
 
 print(f"{times_uncovered / times_total * 100:.2}% downtime.")
 input("\nPress enter to finish.")

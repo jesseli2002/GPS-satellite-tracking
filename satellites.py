@@ -3,6 +3,7 @@ import constants as const
 import datetime as dt
 import numpy as np
 import itertools as it
+import matplotlib.pyplot as plt
 
 
 def get_rot(theta): return np.array(
@@ -113,13 +114,28 @@ class Observer:
         minMask = 10 * np.pi/180
         return a.dot(b) / (np.linalg.norm(a) * np.linalg.norm(b)) >= np.cos(np.pi / 2 - minMask)
 
-    def num_visible_uncovered(self, poses, t, l):
+    def __plot_uncovered(self, my_pos, rel_pos, max_X):
+        # rotate everything 
+        r = 2 * np.random.rand(1)
+        theta = 2 * np.pi * np.random.rand(1)
+        area = 200 * r**2
+        colors = theta
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='polar')
+        c = ax.scatter(theta, r, c=colors, s=area, cmap='hsv', alpha=0.75)
+        plt.show()
+        pass
+
+    def numVisibleUncovered(self, gps_sats, t, l, plot=False):
         """
         poses: list of positions
         t: current time
         l: length of RF window above receiver, in metres
+        plot: If true, creates a sky-plot of all of the satellite positions.
         """
         # refer to https://stackoverflow.com/questions/3229459/algorithm-to-cover-maximal-number-of-points-with-one-circle-of-given-radius
+        poses = [sat.get_np_pos(t) for sat in gps_sats]
         visible = list(filter(lambda pos: self.can_see(pos, t), poses))
 
         scale = np.sqrt(l ** 2 + (const.DIAM_ROCKET / 2) ** 2)
@@ -139,6 +155,7 @@ class Observer:
             return count + 2
 
         max_coverable = 1
+        max_X = rel_pos[0]  # Doesn't matter - just needs to be one
 
         for P, Q in it.combinations(rel_pos, 2):
 
@@ -152,15 +169,27 @@ class Observer:
             Mja = np.cross(n, M)
 
             theta = np.arccos(d / M_norm)
-            Xa = M * np.cos(theta) + Mja * np.sin(theta)
-            Xb = M * np.cos(theta) - Mja * np.sin(theta)
+            Xi = M * np.cos(theta)
+            Xj = Mja * np.sin(theta)
+            Xa = Xi + Xj
+            Xb = Xi - Xj
 
             Xa *= (d / np.linalg.norm(Xa))
             Xb *= (d / np.linalg.norm(Xb))
 
-            max_coverable = max(
-                max_coverable, plane_side_check(Xa), plane_side_check(Xb))
+            _ = plane_side_check(Xa)
+            if _ > max_coverable:
+                max_coverable = _
+                max_X = _
+
+            _ = plane_side_check(Xb)
+            if _ > max_coverable:
+                max_coverable = _
+                max_X = _
+
             if (max_coverable) == len(visible):
                 break
 
-        return len(visible) - max_coverable
+        if plot:
+            self.__plot_uncovered(my_pos, rel_pos, max_X)
+        return len(visible), len(visible) - max_coverable

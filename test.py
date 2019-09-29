@@ -30,6 +30,6 @@ class TestObserver(ut.TestCase):
     def testVisible(self):
         # 22.5 degrees, + .5 degrees for rounding errors
         l = const.DIAM_ROCKET / (2 * np.tan(23 * np.pi / 180))
-        self.assertEqual(self.obs.num_visible_uncovered(
+        self.assertEqual(self.obs.numVisibleUncovered(
             self.centered, self.start, l), 1)
 
