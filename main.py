@@ -1,6 +1,5 @@
-import satellites as sat
 import constants as const
-import reader as rd
+import satellites as sat
 
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
@@ -11,12 +10,21 @@ import datetime as dt
 import time
 import os
 
+from skyfield import api as skyapi, toposlib as topo
+
+ts = skyapi.load.timescale()
 pi = np.pi
 
-gps_sats = rd.getSatellites()
+gps_loader = skyapi.Loader(".", False, False)
+gps_sats = set(gps_loader.tle("gps-ops.txt").values())
 
 now = dt.datetime.now()
-rocket = sat.Observer(*const.SPACEPORT_OBSERVER_DATA_ELEMENTS)
+
+rocket = sat.Observer(
+    latitude_degrees=const.LAT_UBC_DEGREES,
+    longitude_degrees=const.LONG_UBC_DEGREES,
+    elevation_m=const.ELEV_UBC
+)
 
 l = 0.4
 log_fold = "logs"
