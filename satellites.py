@@ -18,16 +18,15 @@ class Observer(topo.Topos):
     Subclass of Topos object, adding visibility and application-relevant methods.
     """
 
-    def can_see(self, lookPos, t):
+    def can_see(self, target, t):
         """
-        Checks to see if a particular point is visible. lookPos should be a numpy 3-dimensional vector.
+        Checks to see if a particular point is visible. lookPos should be a Skyfield object
         """
-        # Planned algorithm: Check the angle between the vector pointing straight up (i.e. away from Earth), and vector to lookPos. If this is <= pi/2, then we're good.
-        # Formula is cos(x) = a [dot] b  / (|a| |b|). Something about acos being ill-conditioned near pi/2, so instead of calculating angle, we use cos(angle) < a [dot] b  / (|a| |b|)
-        a = np.array(self.get_position(t))  # observer position
-        b = lookPos - a
-        minMask = 10 * np.pi/180
-        return a.dot(b) / (np.linalg.norm(a) * np.linalg.norm(b)) >= np.cos(np.pi / 2 - minMask)
+        # https://rhodesmill.org/skyfield/earth-satellites.html
+        # search for altaz
+        alt, _, _ = (target - self).at(t).altaz()
+
+        return alt.degrees > 10
 
     def __plot_uncovered(self, my_pos, rel_pos, max_X):
         # rotate everything
@@ -45,19 +44,19 @@ class Observer(topo.Topos):
     def numVisibleUncovered(self, gps_sats, t, l, plot=False):
         """
         poses: list of positions
-        t: current time
+        t: current time (Skyfield Time object)
         l: length of RF window above receiver, in metres
         plot: If true, creates a sky-plot of all of the satellite positions.
         """
         # refer to https://stackoverflow.com/questions/3229459/algorithm-to-cover-maximal-number-of-points-with-one-circle-of-given-radius
-        poses = [sat.get_np_pos(t) for sat in gps_sats]
-        visible = list(filter(lambda pos: self.can_see(pos, t), poses))
+        # poses = [sat.get_np_pos(t) for sat in gps_sats]
+        visible = list(filter(lambda pos: self.can_see(pos, t), gps_sats))
 
         scale = np.sqrt(l ** 2 + (const.DIAM_ROCKET / 2) ** 2)
         d = l / scale
         maxdiff = const.DIAM_ROCKET / scale
 
-        my_pos = self.get_position(t)
+        my_pos = self.at(t)
         rel_pos = [(a - my_pos) / np.linalg.norm(a - my_pos) for a in visible]
 
         def plane_side_check(X):
