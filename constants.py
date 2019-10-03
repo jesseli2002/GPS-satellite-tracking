@@ -5,8 +5,14 @@ R_EARTH = 6367.5E3
 MU_EARTH = 3.986E14  # = GM
 W_EARTH = 2 * pi / (86164.0905)  # omega of earth, rotational speed. Using sidereal time
 
-#Get local mean sidereal time through http://www.csgnetwork.com/siderealjuliantimecalc.html - enter in date & position, and take local value, and hopefully I've interpreted it correctly
+
+LAT_UBC_DEGREES = 49.260606
+LONG_UBC_DEGREES = -123.255576
+ELEV_UBC = 0
+
 LAT_UBC = 49.260606 * pi / 180
+
+#Get local mean sidereal time through http://www.csgnetwork.com/siderealjuliantimecalc.html - enter in date & position, and take local value, and hopefully I've interpreted it correctly
 UBC_OBSERVER_DATA_ELEMENTS = LAT_UBC, (15 * 3600 + 49 * 60 + 14.89) / 86400 * 2 * pi, dt.datetime(2019, 9, 22)
 
 LAT_SPACEPORT = 32.99 * pi / 180
