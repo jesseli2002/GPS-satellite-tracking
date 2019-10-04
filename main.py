@@ -37,12 +37,18 @@ with open(os.path.join(log_fold, "datalog_" + now.strftime("%Y%m%d_%H%M%S") + ".
     log_writer.writerow(("Time", "Visible", "Uncovered", "Warnings"))
     times_uncovered = 0
 
-    times_total = 6 * 6  # once every 10 minutes for 24 hrs for 30 days
+    times_total = 6 * 24 * 10  # once every 10 minutes for 24 hrs for 30 days
 
     # Skyfield recommends using a single time object, but all the other math is so much easier if it's just one time
 
     times = (ts.utc(2019, 9, 23, 0, 10 * x) for x in range(times_total))
+    last_day = None
     for t in times:
+        curr_day = t.utc_datetime().day
+        if curr_day != last_day:
+            last_day = curr_day
+            print(f"Now simulating {t.utc_datetime().date().isoformat()}")
+
         num_vis, num_uncovered = rocket.numVisibleUncovered(
             gps_sats, t, l)
 
