@@ -12,11 +12,12 @@ import os
 
 from skyfield import api as skyapi, toposlib as topo
 
-ts = skyapi.load.timescale()
 pi = np.pi
 
-gps_loader = skyapi.Loader(".", False, False)
+gps_loader = skyapi.Loader(".\\data", verbose=False, expire=True)
+
 gps_sats = set(gps_loader.tle("gps-ops.txt").values())
+ts = gps_loader.timescale(builtin=True)
 
 now = dt.datetime.now()
 
@@ -37,7 +38,7 @@ with open(os.path.join(log_fold, "datalog_" + now.strftime("%Y%m%d_%H%M%S") + ".
     log_writer.writerow(("Time", "Visible", "Uncovered", "Warnings"))
     times_uncovered = 0
 
-    times_total = 6 * 24 * 10  # once every 10 minutes for 24 hrs for 30 days
+    times_total = 6   # once every 10 minutes for 24 hrs for 30 days
 
     # Skyfield recommends using a single time object, but all the other math is so much easier if it's just one time
 
