@@ -51,7 +51,7 @@ with open(os.path.join(log_fold, "datalog_" + now.strftime("%Y%m%d_%H%M%S") + ".
             print(f"Now simulating {t.utc_datetime().date().isoformat()}")
 
         num_vis, num_uncovered = rocket.numVisibleUncovered(
-            gps_sats, t, l)
+            gps_sats, t, l, plot=True)
 
         if num_uncovered > 5:
             warning = ""

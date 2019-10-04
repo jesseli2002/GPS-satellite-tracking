@@ -28,18 +28,16 @@ class Observer(topo.Topos):
 
         return alt.degrees > 10
 
-    def __plot_uncovered(self, my_pos, rel_pos, max_X):
-        # rotate everything
-        r = 2 * np.random.rand(1)
-        theta = 2 * np.pi * np.random.rand(1)
-        area = 200 * r**2
-        colors = theta
+    def __plot_uncovered(self, sats, t, max_X):
+        #alts in degrees since it's plotted radially
+        alts = [(sat - self).at(t).altaz()[0].degrees for sat in sats]
+        azs = [(sat - self).at(t).altaz()[1].radians for sat in sats]
 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='polar')
-        c = ax.scatter(theta, r, c=colors, s=area, cmap='hsv', alpha=0.75)
+        ax.scatter(azs, alts, )
         plt.show()
-        pass
+
 
     def numVisibleUncovered(self, gps_sats, t, l, plot=False):
         """
@@ -105,5 +103,5 @@ class Observer(topo.Topos):
                 break
 
         if plot:
-            self.__plot_uncovered(my_pos, rel_pos, max_X)
+            self.__plot_uncovered(visible, t, max_X)
         return len(visible), len(visible) - max_coverable
