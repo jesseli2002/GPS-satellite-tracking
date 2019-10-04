@@ -44,7 +44,7 @@ with open(os.path.join(log_fold, "datalog_" + now.strftime("%Y%m%d_%H%M%S") + ".
     times = (ts.utc(2019, 9, 23, 0, 10 * x) for x in range(times_total))
     for t in times:
         num_vis, num_uncovered = rocket.numVisibleUncovered(
-            gps_sats, t, l, True)
+            gps_sats, t, l)
 
         if num_uncovered > 5:
             warning = ""

@@ -56,8 +56,8 @@ class Observer(topo.Topos):
         d = l / scale
         maxdiff = const.DIAM_ROCKET / scale
 
-        my_pos = self.at(t)
-        rel_pos = [(a - my_pos) / np.linalg.norm(a - my_pos) for a in visible]
+        my_pos = self.at(t).position.m
+        rel_pos = [(a - self).at(t).position.m / np.linalg.norm((a - self).at(t).position.m) for a in visible]
 
         def plane_side_check(X):
             count = 0
