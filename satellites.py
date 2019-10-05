@@ -24,9 +24,12 @@ class Observer(topo.Topos):
         """
         # https://rhodesmill.org/skyfield/earth-satellites.html
         # search for altaz
-        alt, _, _ = (target - self).at(t).altaz()
 
-        return alt.degrees > 10
+        my_pos = self.at(t).position.m
+        rel_pos = target.at(t).position.m - my_pos
+
+        # magic constant = cos(80 * pi / 180)
+        return np.arccos(my_pos.dot(rel_pos) / (np.linalg.norm(my_pos) * np.linalg.norm(rel_pos))) > 0.173648177667
 
     def __plot_uncovered(self, my_pos, rel_pos, max_X):
         # rotate everything
