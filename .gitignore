@@ -1,5 +1,11 @@
+#IDEs
 .vscode/
+.idea/
+
 __pycache__/
+
+#Miscl data files
 recycling.txt
 gps-ops.txt
 logs/
+data/

@@ -38,7 +38,7 @@ with open(os.path.join(log_fold, "datalog_" + now.strftime("%Y%m%d_%H%M%S") + ".
     log_writer.writerow(("Time", "Visible", "Uncovered", "Warnings"))
     times_uncovered = 0
 
-    times_total = 6   # once every 10 minutes for 24 hrs for 30 days
+    times_total = 6*24  # once every 10 minutes for 24 hrs for 30 days
 
     # Skyfield recommends using a single time object, but all the other math is so much easier if it's just one time
 
