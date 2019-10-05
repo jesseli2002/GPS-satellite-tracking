@@ -42,7 +42,7 @@ with open(os.path.join(log_fold, "datalog_" + now.strftime("%Y%m%d_%H%M%S") + ".
 
     # Skyfield recommends using a single time object, but all the other math is so much easier if it's just one time
 
-    times = (ts.utc(2019, 9, 23, 0, 10 * x) for x in range(times_total))
+    times = ts.utc(2019, 9, 23, 0, [10 * t for t in range(times_total)])
     last_day = None
     for t in times:
         curr_day = t.utc_datetime().day

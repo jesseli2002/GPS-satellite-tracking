@@ -1,7 +1,7 @@
 import constants as const
 import skyfield.toposlib as topo
+from skyfield.api import load
 
-import datetime as dt
 import numpy as np
 import itertools as it
 import matplotlib.pyplot as plt
@@ -17,6 +17,11 @@ class Observer(topo.Topos):
     """
     Subclass of Topos object, adding visibility and application-relevant methods.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        #Calculate radius. This shouldn't ever change, but it's useful in the can_see function?
+        self.radius = np.linalg.norm(self.at(load.timescale().utc(2019)))
+        pass
 
     def can_see(self, target, t):
         """
@@ -29,7 +34,7 @@ class Observer(topo.Topos):
         rel_pos = target.at(t).position.m - my_pos
 
         # magic constant = cos(80 * pi / 180)
-        return np.arccos(my_pos.dot(rel_pos) / (np.linalg.norm(my_pos) * np.linalg.norm(rel_pos))) > 0.173648177667
+        return np.arccos(my_pos.dot(rel_pos) / (self.radius * np.linalg.norm(rel_pos))) > 0.173648177667
 
     def __plot_uncovered(self, my_pos, rel_pos, max_X):
         # rotate everything
