@@ -78,9 +78,10 @@ ax = fig.add_subplot(111)
 ax.plot(test_lengths, downtime)
 ax.set_ylim([0, 1])
 
-plt.show()
 plt.savefig('Graph.png')
+plt.show()
+with open("Downtimes vs testlengths.txt", 'w') as f:
+    print(test_lengths, file=f)
+    print(downtime, file=f)
 
-
-print(f"{sample_val * 100:.2}% downtime.")
 input("\nPress enter to finish.")
