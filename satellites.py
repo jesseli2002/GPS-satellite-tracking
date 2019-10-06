@@ -1,10 +1,12 @@
 import constants as const
 import skyfield.toposlib as topo
+from skyfield.api import EarthSatellite
 
 import datetime as dt
 import numpy as np
 import itertools as it
 import matplotlib.pyplot as plt
+
 import pdb
 
 
@@ -35,9 +37,12 @@ class Observer(topo.Topos):
 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='polar')
-        ax.scatter(azs, alts, )
-        plt.show()
+        ax.set_ylim(90, 0)
+        ax.scatter(azs, alts)
 
+        for x, y, sat in zip(azs, alts, sats):
+            ax.annotate(sat.name, (x, y))
+        plt.show()
 
     def numVisibleUncovered(self, gps_sats, t, l, plot=False):
         """
@@ -70,7 +75,6 @@ class Observer(topo.Topos):
         max_X = rel_pos[0]  # Doesn't matter - just needs to be one
 
         for P, Q in it.combinations(rel_pos, 2):
-
             n = Q - P
             n_norm = np.linalg.norm(n)
             if n_norm >= maxdiff:

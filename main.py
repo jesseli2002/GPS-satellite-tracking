@@ -17,6 +17,10 @@ pi = np.pi
 gps_loader = skyapi.Loader(".\\data", verbose=False, expire=True)
 
 gps_sats = set(gps_loader.tle("gps-ops.txt").values())
+#setup names
+for gps_sat in gps_sats:
+    gps_sat.name = gps_sat.name[-3:-1].strip('0')
+
 ts = gps_loader.timescale(builtin=True)
 
 now = dt.datetime.now()
@@ -42,7 +46,7 @@ with open(os.path.join(log_fold, "datalog_" + now.strftime("%Y%m%d_%H%M%S") + ".
 
     # Skyfield recommends using a single time object, but all the other math is so much easier if it's just one time
 
-    times = (ts.utc(2019, 9, 23, 0, 10 * x) for x in range(times_total))
+    times = ts.utc(2019, 10, 5, 0, [10 * x for x in range(times_total)])
     last_day = None
     for t in times:
         curr_day = t.utc_datetime().day
