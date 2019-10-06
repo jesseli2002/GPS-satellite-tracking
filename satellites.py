@@ -37,9 +37,11 @@ class Observer(topo.Topos):
 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='polar')
+        ax.set_theta_offset(np.pi / 2)
+        ax.set_theta_direction(-1)
         ax.set_ylim(90, 0)
-        ax.scatter(azs, alts)
 
+        ax.scatter(azs, alts)
         for x, y, sat in zip(azs, alts, sats):
             ax.annotate(sat.name, (x, y))
         plt.show()

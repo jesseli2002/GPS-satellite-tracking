@@ -36,6 +36,7 @@ log_fold = "logs"
 os.makedirs(log_fold, exist_ok=True)
 
 print("Starting...")
+
 with open(os.path.join(log_fold, "datalog_" + now.strftime("%Y%m%d_%H%M%S") + ".csv"), mode='w', newline='') as log_file:
 
     log_writer = csv.writer(log_file)
