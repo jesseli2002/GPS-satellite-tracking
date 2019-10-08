@@ -56,7 +56,7 @@ def estimate_downtime(l: float):
                 print(f"Now simulating {t.utc_datetime().date().isoformat()}")
 
             num_vis, num_uncovered = rocket.numVisibleUncovered(
-                gps_sats, t, l, plot=False)
+                gps_sats, t, l, plot=True)
 
             if num_uncovered > 5:
                 warning = ""

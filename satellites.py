@@ -1,13 +1,38 @@
 import constants as const
 import skyfield.toposlib as topo
 from skyfield.api import EarthSatellite
+from skyfield.positionlib import Geocentric, Geometric
+from skyfield.vectorlib import VectorFunction, ObserverData
 
 import datetime as dt
 import numpy as np
 import itertools as it
 import matplotlib.pyplot as plt
 
-import pdb
+class ConstPosition(VectorFunction):
+    """
+    Describes a constant position, relative to a Topos object.
+    Initialization function: pass numpy array to position
+    """
+    vel = np.array((0, 0, 0))
+    def __init__(self, pos, origin_topos:topo.Topos):
+        self.position = pos
+        self.target = None
+        self.target_name = None
+        self.ephemeris = None
+
+        self.origin_topos = origin_topos
+        self.observer_data = ObserverData()
+
+        # Uncomment if this works
+        # self._snag_observer_data = self.origin_topos._snag_observer_data
+        # origin_topos._snag_observer_data(observer_data, t)
+
+    def _at(self, t):
+        return self.position, np.zeros(3), self.position, None
+
+    def _snag_observer_data(self, observer_data, t):
+        self.origin_topos._snag_observer_data(observer_data, t)
 
 
 def get_rot(theta): return np.array(
@@ -30,7 +55,7 @@ class Observer(topo.Topos):
 
         return alt.degrees > 10
 
-    def __plot_uncovered(self, sats, t, max_X):
+    def __plot_uncovered(self, sats, t, max_X, r):
         #alts in degrees since it's plotted radially
         alts = [(sat - self).at(t).altaz()[0].degrees for sat in sats]
         azs = [(sat - self).at(t).altaz()[1].radians for sat in sats]
@@ -42,8 +67,36 @@ class Observer(topo.Topos):
         ax.set_ylim(90, 0)
 
         ax.scatter(azs, alts)
+
         for x, y, sat in zip(azs, alts, sats):
             ax.annotate(sat.name, (x, y))
+
+        # Calculate surrounding circle
+        thetas = np.linspace(0, 2 * np.pi)
+        i = np.array((max_X[1], -max_X[0], 0))
+        j = np.cross(max_X, i)
+        i /= np.linalg.norm(i)
+        j /= np.linalg.norm(j)
+
+
+        cover_points = (r * (i * np.cos(theta) + j * np.sin(theta)) + max_X for theta in thetas)
+
+        cover_points = [ConstPosition(cover_point, self) for cover_point in cover_points]
+
+        for point in cover_points:
+            point.center = self.target
+            point.target_name = "cover point"
+            point.ephemeris = None
+
+        cover_altazs = [cover_point.at(t).altaz() for cover_point in cover_points]
+
+        cover_alts = [altaz[0].degrees for altaz in cover_altazs]
+        cover_azs = [altaz[1].radians for altaz in cover_altazs]
+
+        # plot surrounding circle
+        ax.plot(cover_azs, cover_alts, 'r', lw=1)
+        
+
         plt.show()
 
     def numVisibleUncovered(self, gps_sats, t, l, plot=False):
@@ -98,16 +151,17 @@ class Observer(topo.Topos):
             _ = plane_side_check(Xa)
             if _ > max_coverable:
                 max_coverable = _
-                max_X = _
+                max_X = Xa
 
             _ = plane_side_check(Xb)
             if _ > max_coverable:
                 max_coverable = _
-                max_X = _
+                max_X = Xb
 
             if (max_coverable) == len(visible):
                 break
 
         if plot:
-            self.__plot_uncovered(visible, t, max_X)
+            r = np.sqrt(1 - np.linalg.norm(max_X) ** 2)
+            self.__plot_uncovered(visible, t, max_X, r)
         return len(visible), len(visible) - max_coverable
