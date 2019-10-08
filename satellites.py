@@ -78,7 +78,6 @@ class Observer(topo.Topos):
         i /= np.linalg.norm(i)
         j /= np.linalg.norm(j)
 
-
         cover_points = (r * (i * np.cos(theta) + j * np.sin(theta)) + max_X for theta in thetas)
 
         cover_points = [ConstPosition(cover_point, self) for cover_point in cover_points]
@@ -94,8 +93,10 @@ class Observer(topo.Topos):
         cover_azs = [altaz[1].radians for altaz in cover_altazs]
 
         # plot surrounding circle
-        ax.plot(cover_azs, cover_alts, 'r', lw=1)
-        
+        ax.plot(cover_azs, cover_alts, 'r', lw=0.5)
+
+        # calculate horizon cutoff
+        ax.plot(thetas, [const.HORIZON_CUTOFF]*len(thetas), 'k', lw=2)
 
         plt.show()
 
@@ -162,6 +163,6 @@ class Observer(topo.Topos):
                 break
 
         if plot:
-            r = np.sqrt(1 - np.linalg.norm(max_X) ** 2)
+            r = np.sqrt(1 - d ** 2)
             self.__plot_uncovered(visible, t, max_X, r)
         return len(visible), len(visible) - max_coverable

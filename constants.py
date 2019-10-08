@@ -24,3 +24,5 @@ DIAM_ROCKET = 6.5 * 2.54 * 0.01
 # -123° 15' 15.5592"
 # Latitude:
 # 49° 15' 38.18"
+
+HORIZON_CUTOFF = 10 #degrees
