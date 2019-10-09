@@ -1,10 +1,8 @@
 import constants as const
+
 import skyfield.toposlib as topo
-from skyfield.api import EarthSatellite
-from skyfield.positionlib import Geocentric, Geometric
 from skyfield.vectorlib import VectorFunction, ObserverData
 
-import datetime as dt
 import numpy as np
 import itertools as it
 import matplotlib.pyplot as plt
