@@ -30,7 +30,7 @@ rocket = sat.Observer(
     elevation_m=const.ELEV_UBC
 )
 
-log_fold = "logs"
+log_fold = os.path.join("logs", f"datalog_" + now.strftime("%Y%m%d_%H%M%S"))
 os.makedirs(log_fold, exist_ok=True)
 
 print("Starting...")
@@ -40,7 +40,7 @@ def estimate_downtime(l_list, times_total=6*24*30):
     times = ts.utc(2019, 10, 5, 0, [10 * x for x in range(times_total)])
     num_ls = len(l_list)
 
-    log_file_name = f"datalog_" + now.strftime("%Y%m%d_%H%M%S") + ".csv"
+    log_file_name = "data.csv"
 
     with open(os.path.join(log_fold, log_file_name), mode='w', newline='') as log_file:
 
@@ -81,7 +81,7 @@ def estimate_downtime(l_list, times_total=6*24*30):
 
     return [times_uncovered[l] / times_total for l in l_list]
 
-test_lengths = np.linspace(0.1, 0.5, 19)
+test_lengths = np.linspace(0.15, 0.25, 21)
 downtime = estimate_downtime(test_lengths)
 
 fig = plt.figure()
@@ -89,9 +89,9 @@ ax = fig.add_subplot(111)
 ax.plot(test_lengths, downtime)
 ax.set_ylim([0, 1])
 
-plt.savefig('Graph.png')
+plt.savefig(os.path.join(log_fold, 'Graph.png'))
 plt.show()
-with open("Downtimes vs testlengths.txt", 'w') as f:
+with open(os.path.join(log_fold, "Downtimes vs testlengths.txt"), 'w') as f:
     print(test_lengths, file=f)
     print(downtime, file=f)
 
