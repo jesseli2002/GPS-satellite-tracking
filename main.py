@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import csv
 import datetime as dt
 import os
+from collections import defaultdict
 
 from skyfield import api as skyapi, toposlib as topo
 
@@ -14,7 +15,7 @@ pi = np.pi
 
 gps_loader = skyapi.Loader(".\\data", verbose=False, expire=True)
 
-gps_sats = set(gps_loader.tle("gps-ops.txt").values())
+gps_sats = list(set(gps_loader.tle("gps-ops.txt").values()))
 #setup names
 for gps_sat in gps_sats:
     gps_sat.name = gps_sat.name[-3:-1].strip('0')
@@ -34,18 +35,24 @@ os.makedirs(log_fold, exist_ok=True)
 
 print("Starting...")
 
-def estimate_downtime(l: float):
-    print(f"Beginning downtime estimate for l = {l:.2}")
-    log_file_name = f"datalog_{l:.2}_" + now.strftime("%Y%m%d_%H%M%S") + ".csv"
+
+def estimate_downtime(l_list, times_total=6*24*30):
+    times = ts.utc(2019, 10, 5, 0, [10 * x for x in range(times_total)])
+    num_ls = len(l_list)
+
+    log_file_name = f"datalog_" + now.strftime("%Y%m%d_%H%M%S") + ".csv"
+
     with open(os.path.join(log_fold, log_file_name), mode='w', newline='') as log_file:
 
         log_writer = csv.writer(log_file)
-        log_writer.writerow(("Time", "Visible", "Uncovered", "Warnings"))
-        times_uncovered = 0
+        header = ["Time"]
+        for l in l_list:
+            header += [f"{l}_Visible", f"{l}Uncovered", f"{l}Warnings"]
 
-        times_total = 6 * 24 * 30  # once every 10 minutes for 24 hrs for 30 days
+        log_writer.writerow(header)
+        times_uncovered = defaultdict(int)
 
-        times = ts.utc(2019, 10, 5, 0, [10 * x for x in range(times_total)])
+        print(f"Beginning downtime estimate for l = {l:.2}")
         last_day = None
 
         # Skyfield recommends using a single time object, but all the other math is so much easier if it's just one time
@@ -55,23 +62,27 @@ def estimate_downtime(l: float):
                 last_day = curr_day
                 print(f"Now simulating {t.utc_datetime().date().isoformat()}")
 
-            num_vis, num_uncovered = rocket.numVisibleUncovered(
-                gps_sats, t, l, plot=True)
+            output_row = [str(t)]
+            for l in l_list:
+                num_vis, num_uncovered = rocket.numVisibleUncovered(
+                    gps_sats, t, l, plot=False)
 
-            if num_uncovered > 5:
-                warning = ""
-            elif num_uncovered > 3:
-                warning = "Low coverage"
-            else:
-                warning = "No coverage"
-                times_uncovered += 1
+                if num_uncovered > 5:
+                    warning = ""
+                elif num_uncovered > 3:
+                    warning = "Low coverage"
+                else:
+                    warning = "No coverage"
+                    times_uncovered[l] += 1
 
-            log_writer.writerow((str(t), num_vis, num_uncovered, warning))
+                output_row += [num_vis, num_uncovered, warning]
 
-    return times_uncovered / times_total
+            log_writer.writerow(output_row)
+
+    return [times_uncovered[l] / times_total for l in l_list]
 
 test_lengths = np.linspace(0.1, 0.5, 19)
-downtime = [estimate_downtime(l) for l in test_lengths]
+downtime = estimate_downtime(test_lengths)
 
 fig = plt.figure()
 ax = fig.add_subplot(111)

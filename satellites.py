@@ -42,21 +42,28 @@ class Observer(topo.Topos):
     """
     Subclass of Topos object, adding visibility and application-relevant methods.
     """
+    def __init__(self, latitude=None, longitude=None, latitude_degrees=None,
+                 longitude_degrees=None, elevation_m=0.0, x=0.0, y=0.0):
+        self.__cache_t = None
+        self.__cache_gps = None
+        super().__init__(latitude=latitude, longitude=longitude, latitude_degrees=latitude_degrees, longitude_degrees=longitude_degrees, elevation_m=elevation_m, x=x, y=y)
 
     def can_see(self, target, t):
         """
-        Checks to see if a particular point is visible. lookPos should be a Skyfield object
+        Checks to see if a particular point is visible (i.e. not blocked by horizon mask). target should be a Skyfield object; t should be a time object.
         """
         # https://rhodesmill.org/skyfield/earth-satellites.html
         # search for altaz
-        alt, _, _ = (target - self).at(t).altaz()
+        alt, _, _ = self.__cache_gps[target.model.satnum].altaz()
 
         return alt.degrees > 10
 
     def __plot_uncovered(self, sats, t, max_X, r):
         #alts in degrees since it's plotted radially
-        alts = [(sat - self).at(t).altaz()[0].degrees for sat in sats]
-        azs = [(sat - self).at(t).altaz()[1].radians for sat in sats]
+        alts = [self.__cache_gps[sat.model.satnum].altaz()[0].degrees
+            for sat in sats]
+        azs =  [self.__cache_gps[sat.model.satnum].altaz()[1].radians
+            for sat in sats]
 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='polar')
@@ -107,6 +114,13 @@ class Observer(topo.Topos):
         """
         # refer to https://stackoverflow.com/questions/3229459/algorithm-to-cover-maximal-number-of-points-with-one-circle-of-given-radius
         # poses = [sat.get_np_pos(t) for sat in gps_sats]
+        if self.__cache_t != t:
+            self.__cache_t = t
+            self.__cache_gps = {
+                gps_sat.model.satnum: (gps_sat - self).at(t)
+                for gps_sat in gps_sats
+            }
+
         visible = list(filter(lambda pos: self.can_see(pos, t), gps_sats))
 
         scale = np.sqrt(l ** 2 + (const.DIAM_ROCKET / 2) ** 2)
@@ -114,7 +128,10 @@ class Observer(topo.Topos):
         maxdiff = const.DIAM_ROCKET / scale
 
         my_pos = self.at(t).position.m
-        rel_pos = [(a - self).at(t).position.m / np.linalg.norm((a - self).at(t).position.m) for a in visible]
+        rel_pos = [self.__cache_gps[a.model.satnum].position.m /
+            np.linalg.norm(self.__cache_gps[a.model.satnum].position.m)
+            for a in visible
+        ]
 
         def plane_side_check(X):
             count = 0
