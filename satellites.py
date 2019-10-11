@@ -59,17 +59,21 @@ class Observer(topo.Topos):
         return alt.degrees > 10
 
     def __plot_uncovered(self, sats, t, max_X, r):
-        #alts in degrees since it's plotted radially
-        alts = [self.__cache_gps[sat.model.satnum].altaz()[0].degrees
-            for sat in sats]
-        azs =  [self.__cache_gps[sat.model.satnum].altaz()[1].radians
-            for sat in sats]
-
+        # setup formatting
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='polar')
         ax.set_theta_offset(np.pi / 2)
         ax.set_theta_direction(-1)
         ax.set_ylim(90, 0)
+
+        title = "Satellite positions - UTC " + str(t.utc_datetime().date()) + " " + str(t.utc_datetime().time())
+        ax.set_title(title)
+
+        #alts in degrees since it's plotted radially
+        alts = [self.__cache_gps[sat.model.satnum].altaz()[0].degrees
+            for sat in sats]
+        azs =  [self.__cache_gps[sat.model.satnum].altaz()[1].radians
+            for sat in sats]
 
         ax.scatter(azs, alts)
 

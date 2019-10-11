@@ -38,10 +38,8 @@ print("Starting...")
 
 def estimate_downtime(l_list, times_total=6*24*30):
     times = ts.utc(2019, 10, 5, 0, [10 * x for x in range(times_total)])
-    num_ls = len(l_list)
 
     log_file_name = "data.csv"
-
     with open(os.path.join(log_fold, log_file_name), mode='w', newline='') as log_file:
 
         log_writer = csv.writer(log_file)
@@ -65,7 +63,7 @@ def estimate_downtime(l_list, times_total=6*24*30):
             output_row = [str(t)]
             for l in l_list:
                 num_vis, num_uncovered = rocket.numVisibleUncovered(
-                    gps_sats, t, l, plot=False)
+                    gps_sats, t, l, plot=True)
 
                 if num_uncovered > 5:
                     warning = ""
@@ -82,7 +80,7 @@ def estimate_downtime(l_list, times_total=6*24*30):
     return [times_uncovered[l] / times_total for l in l_list]
 
 test_lengths = np.linspace(0.15, 0.25, 21)
-downtime = estimate_downtime(test_lengths)
+downtime = estimate_downtime([0.2])
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
