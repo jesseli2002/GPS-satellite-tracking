@@ -67,7 +67,12 @@ class Observer(topo.Topos):
         ax.set_ylim(90, 0)
 
         title = "Satellite positions - UTC " + str(t.utc_datetime().date()) + " " + str(t.utc_datetime().time())
+
         ax.set_title(title)
+        ax.set_xticks([0, np.pi / 2, np.pi, 3 * np.pi / 2, 2 * np.pi])
+        ax.set_xticklabels(['N\n(360°|0°)', 'E\n(90°)', 'S\n(180°)', 'W\n(270°)'])
+        ax.set_yticks([0, 30, 60, 90])
+        ax.set_yticklabels(['0°', '30°', '60°', '90°'])
 
         #alts in degrees since it's plotted radially
         alts = [self.__cache_gps[sat.model.satnum].altaz()[0].degrees
@@ -75,7 +80,7 @@ class Observer(topo.Topos):
         azs =  [self.__cache_gps[sat.model.satnum].altaz()[1].radians
             for sat in sats]
 
-        ax.scatter(azs, alts)
+        ax.scatter(azs, alts, color='g', label='Satellites')
 
         for x, y, sat in zip(azs, alts, sats):
             ax.annotate(sat.name, (x, y))
@@ -102,11 +107,12 @@ class Observer(topo.Topos):
         cover_azs = [altaz[1].radians for altaz in cover_altazs]
 
         # plot surrounding circle
-        ax.plot(cover_azs, cover_alts, 'r', lw=0.5)
+        ax.plot(cover_azs, cover_alts, 'r', lw=0.5, label='RF blocked')
 
         # calculate horizon cutoff
-        ax.plot(thetas, [const.HORIZON_CUTOFF]*len(thetas), 'k', lw=2)
-
+        ax.plot(thetas, [const.HORIZON_CUTOFF] * len(thetas), 'b', lw=2,
+            label='Horizon cutoff')
+        ax.legend(loc=(0.9, 0.9))
         plt.show()
 
     def numVisibleUncovered(self, gps_sats, t, l, plot=False):
